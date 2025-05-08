@@ -1,41 +1,40 @@
 name: Build Focus App
 
+permissions:
+  actions: write
+  contents: read
+
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-  workflow_dispatch:  # 允许手动触发
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: macos-latest  # 使用最新的macOS运行环境
+    runs-on: macos-latest
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4  # Updated to latest version
       
     - name: Setup Xcode
       run: sudo xcode-select -s /Applications/Xcode.app
         
     - name: Build macOS app
       run: |
-        # 检查环境
         echo "Xcode version:"
         xcodebuild -version
         
-        # 列出scheme
         echo "Available schemes:"
         xcodebuild -list -project Focus.xcodeproj || echo "Error: Could not list schemes"
         
-        # 创建构建目录
         mkdir -p ./Build
         
-        # 尝试构建应用
         echo "Building Focus app..."
         xcodebuild build -project Focus.xcodeproj -configuration Release -derivedDataPath ./DerivedData CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO
         
-        # 查找并复制构建产物
         echo "Searching for built app:"
         find ./DerivedData -name "*.app" -type d
         
@@ -53,7 +52,7 @@ jobs:
         fi
         
     - name: Upload artifact
-      uses: actions/upload-artifact@v3.1.2  # 使用固定版本
+      uses: actions/upload-artifact@v4  # Updated to latest version
       with:
         name: Focus-app
         path: Build/Focus.zip
