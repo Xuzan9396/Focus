@@ -53,7 +53,7 @@ jobs:
         fi
         
     - name: Upload artifact
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v3  # 升级到最新版本
       with:
         name: Focus-app
         path: Build/Focus.zip
