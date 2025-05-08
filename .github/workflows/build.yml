@@ -1,0 +1,61 @@
+name: Build Focus App
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  build:
+    runs-on: macos-latest  # 使用最新的macOS运行环境
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Set up Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: latest-stable
+        
+    - name: Install dependencies
+      run: |
+        # 如果有CocoaPods依赖，取消下面注释
+        # pod install
+        
+    - name: Build macOS app
+      run: |
+        # 列出scheme
+        xcodebuild -list -project Focus.xcodeproj
+        
+        # 创建构建目录
+        mkdir -p ./Build
+        
+        # 构建应用 (使用无签名方式)
+        xcodebuild clean build -project Focus.xcodeproj -scheme Focus -configuration Release -derivedDataPath ./DerivedData CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
+        
+        # 复制构建好的应用到Build目录
+        cp -R ./DerivedData/Build/Products/Release/Focus.app ./Build/
+        
+    - name: Create ZIP for distribution
+      run: |
+        cd ./Build
+        zip -r Focus.zip Focus.app
+        
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: Focus-app
+        path: Build/Focus.zip
+        
+    # 如果你想发布到GitHub Releases，取消以下注释
+    # - name: Release
+    #   uses: softprops/action-gh-release@v1
+    #   if: startsWith(github.ref, 'refs/tags/')
+    #   with:
+    #     files: |
+    #       Build/Focus.zip
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
